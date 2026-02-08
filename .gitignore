@@ -1,0 +1,18 @@
+# Build folders
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+
+# Visual Studio cache
+.vs/
+
+# Output files
+*.exe
+*.dll
+*.pdb
+
+# Zip files
+*.zip
