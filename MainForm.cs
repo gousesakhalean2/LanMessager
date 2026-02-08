@@ -174,7 +174,8 @@ namespace LanMessager
 
         private void btnClear_Click(object sender, EventArgs e)
         {
-
+            txtLog.Text = string.Empty;
+            txtMessage.Text = string.Empty;
         }
 
     }
