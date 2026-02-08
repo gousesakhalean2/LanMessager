@@ -1,0 +1,9 @@
+D:\GIT\LanMessager\bin\Debug\LanMessager.exe.config
+D:\GIT\LanMessager\bin\Debug\LanMessager.exe
+D:\GIT\LanMessager\bin\Debug\LanMessager.pdb
+D:\GIT\LanMessager\obj\Debug\LanMessager.csprojResolveAssemblyReference.cache
+D:\GIT\LanMessager\obj\Debug\LanMessager.MainForm.resources
+D:\GIT\LanMessager\obj\Debug\LanMessager.Properties.Resources.resources
+D:\GIT\LanMessager\obj\Debug\LanMessager.csproj.GenerateResource.Cache
+D:\GIT\LanMessager\obj\Debug\LanMessager.exe
+D:\GIT\LanMessager\obj\Debug\LanMessager.pdb
