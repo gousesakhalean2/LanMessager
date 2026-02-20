@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
@@ -10,45 +11,158 @@ namespace LanMessager
         private TcpMessenger messenger;
         private Timer timer;
 
+        // Tray components
+        private NotifyIcon notifyIcon1;
+        private ContextMenuStrip trayMenu;
+        private Dictionary<string, DateTime> peerLastSeen =   new Dictionary<string, DateTime>();
+
+
         public MainForm()
         {
             InitializeComponent();
 
-            // Initialize Peer Discovery
+            // ===============================
+            // SYSTEM TRAY INITIALIZATION
+            // ===============================
+
+            trayMenu = new ContextMenuStrip();
+            trayMenu.Items.Add("Show", null, Show_Click);
+            trayMenu.Items.Add("Exit", null, Exit_Click);
+
+            notifyIcon1 = new NotifyIcon();
+            notifyIcon1.Icon = this.Icon; // Default app icon
+            notifyIcon1.Text = "LanMessager";
+            notifyIcon1.Visible = false;
+            notifyIcon1.ContextMenuStrip = trayMenu;
+            notifyIcon1.DoubleClick += (s, e) => ShowFromTray();
+
+            // ===============================
+            // PEER DISCOVERY
+            // ===============================
             discovery = new PeerDiscovery();
             discovery.PeerFound += PeerFoundHandler;
             discovery.Start();
 
-            // Initialize TCP Messenger
+            // ===============================
+            // TCP MESSENGER
+            // ===============================
             messenger = new TcpMessenger();
             messenger.MessageReceived += MessageReceivedHandler;
-            messenger.FileProgressChanged += FileProgressHandler; // NEW
+            messenger.FileProgressChanged += FileProgressHandler;
             messenger.StartServer();
 
-            // Auto-refresh every 30s
+            // Auto refresh every 2 seconds
             timer = new Timer();
-            timer.Interval = 2000; // 30 seconds
-            timer.Tick += (s, e) => discovery.BroadcastPresence();
+            timer.Interval = 3000;
+
+            timer.Tick += (s, e) =>
+            {
+                discovery.BroadcastPresence();
+                RemoveInactivePeers();
+            };
+
+
             timer.Start();
         }
 
-        // Peer discovery
+
+        private void RemoveInactivePeers()
+        {
+            if (InvokeRequired)
+            {
+                this.Invoke(new Action(RemoveInactivePeers));
+                return;
+            }
+
+            var inactivePeers = new List<string>();
+
+            foreach (var peer in peerLastSeen)
+            {
+                // If not seen for 4 seconds → remove
+                if ((DateTime.Now - peer.Value).TotalSeconds > 4)
+                {
+                    inactivePeers.Add(peer.Key);
+                }
+            }
+
+            foreach (var peer in inactivePeers)
+            {
+                peerLastSeen.Remove(peer);
+                lstClients.Items.Remove(peer);
+            }
+        }
+
+
+        // ===============================
+        // SYSTEM TRAY METHODS
+        // ===============================
+
+        private void HideToTray()
+        {
+            notifyIcon1.Visible = true;
+            notifyIcon1.BalloonTipTitle = "LanMessager";
+            notifyIcon1.BalloonTipText = "Application is running in background.";
+            notifyIcon1.ShowBalloonTip(2000);
+
+            this.Hide();
+            this.ShowInTaskbar = false;
+        }
+
+        private void ShowFromTray()
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+            this.ShowInTaskbar = true;
+            notifyIcon1.Visible = false;
+        }
+
+        private void Show_Click(object sender, EventArgs e)
+        {
+            ShowFromTray();
+        }
+
+        private void Exit_Click(object sender, EventArgs e)
+        {
+            notifyIcon1.Visible = false;
+            Application.Exit();
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                HideToTray();
+            }
+        }
+
+        // ===============================
+        // PEER DISCOVERY
+        // ===============================   
         private void PeerFoundHandler(string peer)
         {
             if (InvokeRequired)
             {
                 this.Invoke(new Action(() => PeerFoundHandler(peer)));
+                return;
             }
-            else
-            {
-                if (!lstClients.Items.Contains(peer))
-                    lstClients.Items.Add(peer);
-            }
+
+            // Update last seen time
+            peerLastSeen[peer] = DateTime.Now;
+
+            // Add to list if not already
+            if (!lstClients.Items.Contains(peer))
+                lstClients.Items.Add(peer);
         }
 
-        // Message received  
 
-        private void MessageReceivedHandler(string message)
+
+        // ===============================
+        // MESSAGE RECEIVED
+        // ===============================
+
+        private void MessageReceivedHandler0(string message)
         {
             if (InvokeRequired)
             {
@@ -56,7 +170,6 @@ namespace LanMessager
             }
             else
             {
-                // If the message starts with "File received:", add timestamp
                 if (message.StartsWith("File received:"))
                 {
                     string timestamp = DateTime.Now.ToString("[HH:mm:ss] ");
@@ -64,15 +177,65 @@ namespace LanMessager
                 }
                 else
                 {
-                    // Just append the message as-is for normal text
                     txtLog.AppendText(message + Environment.NewLine);
                 }
             }
         }
 
+        private void MessageReceivedHandler(string message)
+        {
+            if (InvokeRequired)
+            {
+                this.Invoke(new Action(() => MessageReceivedHandler(message)));
+                return;
+            }
+
+            string timestamp = DateTime.Now.ToString("[HH:mm:ss] ");
+
+            // Show in chat window
+            if (message.StartsWith("File received:"))
+            {
+                txtLog.AppendText(timestamp + message + Environment.NewLine);
+            }
+            else
+            {
+                txtLog.AppendText(message + Environment.NewLine);
+            }
+
+            // ===============================
+            // SYSTEM TRAY NOTIFICATION
+            // ===============================
+
+            /*notifyIcon1.Visible = true; // Ensure tray icon is visible
+
+            notifyIcon1.BalloonTipTitle = "New Message";
+            notifyIcon1.BalloonTipText = message.Length > 100
+                ? message.Substring(0, 100) + "..."
+                : message;
+
+            notifyIcon1.ShowBalloonTip(3000);*/
 
 
-        // File transfer progress
+
+            if (this.WindowState == FormWindowState.Minimized || !this.Visible)
+            {
+                notifyIcon1.Visible = true;
+
+                notifyIcon1.BalloonTipTitle = "New Message";
+                notifyIcon1.BalloonTipText = message.Length > 100
+                    ? message.Substring(0, 100) + "..."
+                    : message;
+
+                notifyIcon1.ShowBalloonTip(3000);
+            }
+
+        }
+
+
+        // ===============================
+        // FILE PROGRESS
+        // ===============================
+
         private void FileProgressHandler(int percent)
         {
             if (InvokeRequired)
@@ -82,19 +245,25 @@ namespace LanMessager
             else
             {
                 pbFileTransfer.Value = percent;
-                if (percent >= 100) pbFileTransfer.Value = 0;
+                if (percent >= 100)
+                    pbFileTransfer.Value = 0;
             }
         }
 
-        // Send message
+        // ===============================
+        // SEND MESSAGE
+        // ===============================
+
         private void btnSend_Click(object sender, EventArgs e)
         {
             if (lstClients.SelectedItem != null && !string.IsNullOrEmpty(txtMessage.Text))
             {
                 string ip = lstClients.SelectedItem.ToString().Split('(')[1].TrimEnd(')');
                 messenger.SendMessage(ip, txtMessage.Text);
+
                 string timestamp = DateTime.Now.ToString("[HH:mm:ss] ");
                 txtLog.AppendText(timestamp + "Me: " + txtMessage.Text + Environment.NewLine);
+
                 txtMessage.Clear();
             }
             else
@@ -103,7 +272,10 @@ namespace LanMessager
             }
         }
 
-        // Send file
+        // ===============================
+        // SEND FILE OR MESSAGE
+        // ===============================
+
         private void btnSendFile_Click(object sender, EventArgs e)
         {
             if (lstClients.SelectedItem == null)
@@ -114,25 +286,25 @@ namespace LanMessager
 
             string ip = lstClients.SelectedItem.ToString().Split('(')[1].TrimEnd(')');
 
-            // 1️⃣ If files are queued, send them
             if (lstQueuedFiles.Items.Count > 0)
             {
                 foreach (string filePath in lstQueuedFiles.Items)
                 {
                     messenger.SendFile(ip, filePath);
                     string timestamp = DateTime.Now.ToString("[HH:mm:ss] ");
-                    txtLog.AppendText(timestamp + "File sent: " + System.IO.Path.GetFileName(filePath) + Environment.NewLine);
+                    txtLog.AppendText(timestamp + "File sent: " +
+                        System.IO.Path.GetFileName(filePath) + Environment.NewLine);
                 }
 
-                // Clear the queue after sending
                 lstQueuedFiles.Items.Clear();
             }
-            // 2️⃣ Else, send text message
             else if (!string.IsNullOrEmpty(txtMessage.Text))
             {
                 messenger.SendMessage(ip, txtMessage.Text);
+
                 string timestamp = DateTime.Now.ToString("[HH:mm:ss] ");
                 txtLog.AppendText(timestamp + "Me: " + txtMessage.Text + Environment.NewLine);
+
                 txtMessage.Clear();
             }
             else
@@ -141,16 +313,22 @@ namespace LanMessager
             }
         }
 
-        // Manual refresh
+        // ===============================
+        // REFRESH
+        // ===============================
+
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             if (discovery != null)
                 discovery.BroadcastPresence();
         }
 
+        // ===============================
+        // DRAG & DROP
+        // ===============================
+
         private void MainForm_DragEnter(object sender, DragEventArgs e)
         {
-            // Check if data is a file
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 e.Effect = DragDropEffects.Copy;
             else
@@ -163,20 +341,31 @@ namespace LanMessager
 
             foreach (string filePath in files)
             {
-                if (System.IO.File.Exists(filePath))
+                if (File.Exists(filePath))
                 {
-                    // Add to listbox if not already added
                     if (!lstQueuedFiles.Items.Contains(filePath))
                         lstQueuedFiles.Items.Add(filePath);
                 }
             }
         }
 
+        // ===============================
+        // CLEAR
+        // ===============================
+
         private void btnClear_Click(object sender, EventArgs e)
         {
-            txtLog.Text = string.Empty;
-            txtMessage.Text = string.Empty;
+            txtLog.Clear();
+            txtMessage.Clear();
         }
 
+        // ===============================
+        // HIDE BUTTON CLICK
+        // ===============================
+
+        private void btnHide_Click(object sender, EventArgs e)
+        {
+            HideToTray();
+        }
     }
 }

@@ -29,6 +29,7 @@ namespace LanMessager
 
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.txtLog = new System.Windows.Forms.TextBox();
             this.txtMessage = new System.Windows.Forms.TextBox();
             this.btnSend = new System.Windows.Forms.Button();
@@ -38,6 +39,8 @@ namespace LanMessager
             this.pbFileTransfer = new System.Windows.Forms.ProgressBar();
             this.lstQueuedFiles = new System.Windows.Forms.ListBox();
             this.btnClear = new System.Windows.Forms.Button();
+            this.btnHide = new System.Windows.Forms.Button();
+            this.notifyIcon2 = new System.Windows.Forms.NotifyIcon(this.components);
             this.SuspendLayout();
             // 
             // txtLog
@@ -49,7 +52,7 @@ namespace LanMessager
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(460, 200);
+            this.txtLog.Size = new System.Drawing.Size(553, 200);
             this.txtLog.TabIndex = 0;
             // 
             // txtMessage
@@ -61,7 +64,7 @@ namespace LanMessager
             this.txtMessage.Location = new System.Drawing.Point(12, 297);
             this.txtMessage.Multiline = true;
             this.txtMessage.Name = "txtMessage";
-            this.txtMessage.Size = new System.Drawing.Size(460, 259);
+            this.txtMessage.Size = new System.Drawing.Size(553, 259);
             this.txtMessage.TabIndex = 1;
             this.txtMessage.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainForm_DragDrop);
             this.txtMessage.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainForm_DragEnter);
@@ -69,7 +72,7 @@ namespace LanMessager
             // btnSend
             // 
             this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSend.Location = new System.Drawing.Point(478, 218);
+            this.btnSend.Location = new System.Drawing.Point(619, 218);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(90, 23);
             this.btnSend.TabIndex = 2;
@@ -80,7 +83,7 @@ namespace LanMessager
             // btnSendFile
             // 
             this.btnSendFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSendFile.Location = new System.Drawing.Point(478, 565);
+            this.btnSendFile.Location = new System.Drawing.Point(570, 564);
             this.btnSendFile.Name = "btnSendFile";
             this.btnSendFile.Size = new System.Drawing.Size(64, 23);
             this.btnSendFile.TabIndex = 3;
@@ -93,15 +96,15 @@ namespace LanMessager
             this.lstClients.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lstClients.FormattingEnabled = true;
-            this.lstClients.Location = new System.Drawing.Point(478, 12);
+            this.lstClients.Location = new System.Drawing.Point(571, 12);
             this.lstClients.Name = "lstClients";
-            this.lstClients.Size = new System.Drawing.Size(200, 550);
+            this.lstClients.Size = new System.Drawing.Size(248, 550);
             this.lstClients.TabIndex = 4;
             // 
             // btnRefresh
             // 
             this.btnRefresh.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRefresh.Location = new System.Drawing.Point(548, 565);
+            this.btnRefresh.Location = new System.Drawing.Point(636, 565);
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.Size = new System.Drawing.Size(61, 23);
             this.btnRefresh.TabIndex = 5;
@@ -115,7 +118,7 @@ namespace LanMessager
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pbFileTransfer.Location = new System.Drawing.Point(12, 562);
             this.pbFileTransfer.Name = "pbFileTransfer";
-            this.pbFileTransfer.Size = new System.Drawing.Size(460, 23);
+            this.pbFileTransfer.Size = new System.Drawing.Size(553, 23);
             this.pbFileTransfer.TabIndex = 5;
             // 
             // lstQueuedFiles
@@ -125,12 +128,13 @@ namespace LanMessager
             this.lstQueuedFiles.FormattingEnabled = true;
             this.lstQueuedFiles.Location = new System.Drawing.Point(13, 218);
             this.lstQueuedFiles.Name = "lstQueuedFiles";
-            this.lstQueuedFiles.Size = new System.Drawing.Size(459, 69);
+            this.lstQueuedFiles.Size = new System.Drawing.Size(552, 69);
             this.lstQueuedFiles.TabIndex = 6;
             // 
             // btnClear
             // 
-            this.btnClear.Location = new System.Drawing.Point(612, 564);
+            this.btnClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClear.Location = new System.Drawing.Point(698, 565);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(62, 23);
             this.btnClear.TabIndex = 7;
@@ -138,10 +142,27 @@ namespace LanMessager
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
+            // btnHide
+            // 
+            this.btnHide.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnHide.Location = new System.Drawing.Point(762, 565);
+            this.btnHide.Name = "btnHide";
+            this.btnHide.Size = new System.Drawing.Size(62, 23);
+            this.btnHide.TabIndex = 7;
+            this.btnHide.Text = "Hide";
+            this.btnHide.UseVisualStyleBackColor = true;
+            this.btnHide.Click += new System.EventHandler(this.btnHide_Click);
+            // 
+            // notifyIcon2
+            // 
+            this.notifyIcon2.Text = "notifyIcon2";
+            this.notifyIcon2.Visible = true;
+            // 
             // MainForm
             // 
             this.AllowDrop = true;
-            this.ClientSize = new System.Drawing.Size(684, 597);
+            this.ClientSize = new System.Drawing.Size(825, 597);
+            this.Controls.Add(this.btnHide);
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.lstQueuedFiles);
             this.Controls.Add(this.pbFileTransfer);
@@ -165,5 +186,7 @@ namespace LanMessager
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.ListBox lstQueuedFiles;
         private Button btnClear;
+        private Button btnHide;
+        private NotifyIcon notifyIcon2;
     }
 }
